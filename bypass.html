@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voucher Scanner Pro - Full Web UI</title>
+    <style>
+        /* ── Global Reset ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background: #0f1117;
+            color: #e4e6eb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .glass {
+            background: rgba(20, 22, 31, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            padding: 30px 28px 40px;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+            gap: 12px;
+        }
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.3px;
+        }
+        .logo span {
+            font-size: 14px;
+            color: #8b8fa7;
+            background: rgba(255,255,255,0.04);
+            padding: 4px 14px;
+            border-radius: 40px;
+            margin-left: 12px;
+            -webkit-text-fill-color: #8b8fa7;
+        }
+        .badge {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .badge .status-pill {
+            background: rgba(52, 211, 153, 0.15);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6ee7b7;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge .status-pill .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            display: inline-block;
+            animation: pulse-dot 1.8s infinite;
+        }
+        .badge .status-pill.idle .dot {
+            background: #9ca3af;
+            animation: none;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* ── Grid Layout ── */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 720px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: rgba(30, 33, 44, 0.6);
+            border-radius: 24px;
+            padding: 22px 24px 26px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.2s;
+        }
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #a5a9bf;
+            letter-spacing: 0.3px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-title .icon {
+            font-size: 18px;
+        }
+
+        /* ── Form elements ── */
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #8b8fa7;
+            margin-bottom: 5px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(12, 14, 20, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            color: #e4e6eb;
+            font-size: 14px;
+            transition: 0.2s;
+            outline: none;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #7c8cff;
+            background: rgba(12, 14, 20, 0.9);
+            box-shadow: 0 0 0 3px rgba(124, 140, 255, 0.15);
+        }
+        .input-group input::placeholder {
+            color: #5a5f77;
+        }
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+        .input-row .input-group {
+            flex: 1;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.04);
+            color: #e4e6eb;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .btn-primary {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #4f52e0;
+            transform: scale(1.01);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+        }
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-danger {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        /* ── Log / Output ── */
+        .log-area {
+            background: rgba(8, 10, 16, 0.8);
+            border-radius: 18px;
+            padding: 18px 20px;
+            max-height: 220px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #c8cbd8;
+        }
+        .log-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .log-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .log-area::-webkit-scrollbar-thumb {
+            background: #3b3f55;
+            border-radius: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 16px 0 8px;
+        }
+        .stat-item {
+            background: rgba(0,0,0,0.25);
+            border-radius: 16px;
+            padding: 14px 10px;
+            text-align: center;
+        }
+        .stat-item .num {
+            font-size: 26px;
+            font-weight: 700;
+            color: #e4e6eb;
+            line-height: 1.2;
+        }
+        .stat-item .label {
+            font-size: 11px;
+            color: #7a7f99;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .stat-item.accent .num { color: #a78bfa; }
+        .stat-item.success .num { color: #34d399; }
+        .stat-item.limited .num { color: #fbbf24; }
+
+        /* ── Found Codes Table ── */
+        .found-list {
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 12px;
+        }
+        .found-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 13px;
+            border-left: 3px solid #34d399;
+        }
+        .found-item .code {
+            font-weight: 600;
+            color: #e4e6eb;
+        }
+        .found-item .plan {
+            color: #8b8fa7;
+            font-size: 12px;
+        }
+
+        /* ── Responsive tweaks ── */
+        .text-muted { color: #7a7f99; }
+        .mt-2 { margin-top: 12px; }
+        .flex { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        /* Toast / notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1e2130;
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 16px 24px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
+            color: #e4e6eb;
+            font-size: 14px;
+            max-width: 380px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.3s ease;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <h1>⚡ Voucher Pro <span>v3.0</span></h1>
+        </div>
+        <div class="badge">
+            <div class="status-pill idle" id="statusPill">
+                <span class="dot"></span> <span id="statusLabel">Idle</span>
+            </div>
+            <button class="btn btn-sm btn-outline" id="clearLogBtn">Clear Log</button>
+        </div>
+    </div>
+
+    <!-- Grid: Setup + Controls -->
+    <div class="grid-2">
+        <!-- Left: Setup -->
+        <div class="card">
+            <div class="card-title"><span class="icon">🔗</span> Session &amp; Config</div>
+            <div class="input-group">
+                <label>Session URL</label>
+                <input type="text" id="sessionUrl" placeholder="https://portal-as.ruijienetworks.com/...?sessionId=...">
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Mode</label>
+                    <select id="scanMode">
+                        <option value="6">6-digit</option>
+                        <option value="7" selected>7-digit</option>
+                        <option value="8">8-digit</option>
+                        <option value="9">9-digit</option>
+                        <option value="starlink">Starlink (ABC-123-456)</option>
+                        <option value="starlink2">Starlink2 (123-456-789)</option>
+                        <option value="ascii-lower">ascii-lower (6 letters)</option>
+                        <option value="all">all (a-z0-9, 6 chars)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Target (max found)</label>
+                    <input type="number" id="targetCount" value="5" min="1" max="999">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Plan Filters (comma separated, e.g. 1d, 12h, unlimited)</label>
+                <input type="text" id="planFilters" placeholder="1d, 12h, unlimited">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="startBtn">▶ Start Scan</button>
+                <button class="btn btn-danger" id="stopBtn">⏹ Stop</button>
+                <button class="btn btn-outline" id="multiLayerBtn">🔄 Multi-layer (3x)</button>
+            </div>
+            <div class="input-group mt-2" style="margin-bottom:0;">
+                <label>Speed (concurrency)</label>
+                <input type="number" id="speedInput" value="500" min="50" max="2000" style="width:120px;">
+            </div>
+        </div>
+
+        <!-- Right: Status & Stats -->
+        <div class="card">
+            <div class="card-title"><span class="icon">📊</span> Live Stats</div>
+            <div class="stats-grid">
+                <div class="stat-item success"><div class="num" id="foundCount">0</div><div class="label">Found</div></div>
+                <div class="stat-item limited"><div class="num" id="limitedCount">0</div><div class="label">Limited</div></div>
+                <div class="stat-item accent"><div class="num" id="checkedCount">0</div><div class="label">Checked</div></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; color:#7a7f99; margin-top:6px;">
+                <span>⏱ <span id="uptime">0h 0m</span></span>
+                <span>⚡ <span id="currentSpeed">0</span>/min</span>
+                <span>📌 <span id="currentModeLabel">-</span></span>
+            </div>
+            <div style="margin-top:14px;">
+                <div class="card-title" style="margin-bottom:6px;"><span class="icon">📋</span> Found Codes</div>
+                <div class="found-list" id="foundList">
+                    <div style="color:#5a5f77; font-size:13px; padding:8px;">No codes yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log -->
+    <div class="card" style="padding:18px 22px;">
+        <div class="card-title" style="margin-bottom:6px;"><span class="icon">📜</span> Console Log</div>
+        <div class="log-area" id="logArea">[System] Voucher Pro ready. Set session URL and start scan.</div>
+    </div>
+
+    <!-- Footer small -->
+    <div style="margin-top:20px; font-size:12px; color:#4a4f66; text-align:center; border-top:1px solid rgba(255,255,255,0.04); padding-top:18px;">
+        🔓 NO KEY REQUIRED · Full Web UI · Ruijie Voucher Scanner
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ─── DOM refs ────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const sessionUrl = $('sessionUrl');
+    const scanMode = $('scanMode');
+    const targetCount = $('targetCount');
+    const planFilters = $('planFilters');
+    const speedInput = $('speedInput');
+    const startBtn = $('startBtn');
+    const stopBtn = $('stopBtn');
+    const multiLayerBtn = $('multiLayerBtn');
+    const logArea = $('logArea');
+    const foundList = $('foundList');
+    const foundCount = $('foundCount');
+    const limitedCount = $('limitedCount');
+    const checkedCount = $('checkedCount');
+    const uptimeEl = $('uptime');
+    const currentSpeed = $('currentSpeed');
+    const currentModeLabel = $('currentModeLabel');
+    const statusPill = $('statusPill');
+    const statusLabel = $('statusLabel');
+    const clearLogBtn = $('clearLogBtn');
+    const toast = $('toast');
+
+    // ─── State ──────────────────────────────────────────────────
+    let state = {
+        running: false,
+        found: [],
+        limited: [],
+        checked: 0,
+        mode: '7',
+        target: 5,
+        speed: 500,
+        planFilters: [],
+        sessionUrl: '',
+        startTime: null,
+        lastCheckTime: null,
+        speedCounter: 0,
+        speedWindow: 0,
+        logLines: [],
+        uptimeInterval: null,
+        statsInterval: null,
+    };
+
+    // ─── Toast helper ──────────────────────────────────────────
+    function showToast(msg, duration = 3500) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._hide);
+        toast._hide = setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    // ─── Logging ──────────────────────────────────────────────
+    function appendLog(text, isError = false) {
+        const prefix = isError ? '❌ ' : '▶ ';
+        const line = prefix + text;
+        state.logLines.push(line);
+        if (state.logLines.length > 200) state.logLines.shift();
+        logArea.textContent = state.logLines.join('\n');
+        logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    // ─── Update found list ────────────────────────────────────
+    function renderFound() {
+        if (state.found.length === 0) {
+            foundList.innerHTML = '<div style="color:#5a5f77; font-size:13px; padding:8px;">No codes yet</div>';
+            return;
+        }
+        let html = '';
+        state.found.slice().reverse().forEach(item => {
+            html += `<div class="found-item"><span class="code">${item.code}</span><span class="plan">${item.plan || 'N/A'}</span></div>`;
+        });
+        foundList.innerHTML = html;
+        foundList.scrollTop = 0;
+    }
+
+    // ─── Update stats ─────────────────────────────────────────
+    function updateStats() {
+        foundCount.textContent = state.found.length;
+        limitedCount.textContent = state.limited.length;
+        checkedCount.textContent = state.checked.toLocaleString();
+
+        // Uptime
+        if (state.startTime) {
+            const sec = Math.floor((Date.now() - state.startTime) / 1000);
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            uptimeEl.textContent = `${h}h ${m}m`;
+        } else {
+            uptimeEl.textContent = '0h 0m';
+        }
+
+        // Speed
+        if (state.speedWindow > 0) {
+            const spd = Math.round(state.speedWindow / 60);
+            currentSpeed.textContent = spd;
+        } else {
+            currentSpeed.textContent = '0';
+        }
+
+        // Mode label
+        currentModeLabel.textContent = state.mode;
+
+        // Status pill
+        if (state.running) {
+            statusPill.className = 'status-pill';
+            statusLabel.textContent = 'Scanning...';
+        } else {
+            statusPill.className = 'status-pill idle';
+            statusLabel.textContent = 'Idle';
+        }
+
+        renderFound();
+    }
+
+    // ─── Reset stats (partial) ───────────────────────────────
+    function resetStats() {
+        state.checked = 0;
+        state.speedWindow = 0;
+        state.speedCounter = 0;
+        state.lastCheckTime = null;
+        state.found = [];
+        state.limited = [];
+        updateStats();
+    }
+
+    // ─── API calls to backend ─────────────────────────────────
+    // Since this is a full HTML UI, we'll use the existing Python backend
+    // but we need to expose a REST-like interface via the web server.
+    // We'll use fetch to communicate with the same server that serves this HTML.
+    // The backend already has aiohttp web server on port 5000.
+    // We'll add endpoints: /api/status, /api/start, /api/stop, /api/setup, /api/log
+
+    const API_BASE = window.location.origin;
+
+    async function apiCall(endpoint, method = 'GET', body = null) {
+        try {
+            const opts = {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+            };
+            if (body) opts.body = JSON.stringify(body);
+            const resp = await fetch(`${API_BASE}${endpoint}`, opts);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return await resp.json();
+        } catch (e) {
+            appendLog(`API error: ${e.message}`, true);
+            return null;
+        }
+    }
+
+    // ─── Start scan ───────────────────────────────────────────
+    async function startScan() {
+        if (state.running) {
+            showToast('⚠️ Scan already running!', 2000);
+            return;
+        }
+
+        const url = sessionUrl.value.trim();
+        if (!url) {
+            showToast('❌ Please set Session URL first.', 2500);
+            appendLog('Session URL is required.', true);
+            return;
+        }
+
+        const mode = scanMode.value;
+        const target = parseInt(targetCount.value) || 0;
+        const speed = parseInt(speedInput.value) || 500;
+        const filtersRaw = planFilters.value.trim();
+        const filters = filtersRaw ? filtersRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+        state.mode = mode;
+        state.target = target;
+        state.speed = speed;
+        state.planFilters = filters;
+        state.sessionUrl = url;
+
+        // Reset stats (keep found list maybe)
+        resetStats();
+
+        // Call backend /api/start
+        const result = await apiCall('/api/start', 'POST', {
+            url,
+            mode,
+            target,
+            speed,
+            plan_filters: filters,
+        });
+
+        if (result && result.status === 'ok') {
+            state.running = true;
+            state.startTime = Date.now();
+            appendLog(`🚀 Scan started. Mode: ${mode}, Target: ${target || '∞'}, Filters: ${filters.join(', ') || 'none'}`);
+            showToast('✅ Scan started!');
+            updateStats();
+        } else {
+            const err = result?.message || 'Unknown error';
+            appendLog(`Failed to start: ${err}`, true);
+            showToast(`❌ ${err}`, 3000);
+        }
+    }
+
+    // ─── Stop scan ────────────────────────────────────────────
+    async function stopScan() {
+        if (!state.running) {
+            showToast('No scan running.', 1500);
+            return;
+        }
+        const result = await apiCall('/api/stop', 'POST');
+        if (result && result.status === 'ok') {
+            state.running = false;
+            appendLog('⏹ Scan stopped by user.');
+            showToast('⏹ Scan stopped.');
+            updateStats();
+        } else {
+            appendLog('Failed to stop scan.', true);
+        }
+    }
+
+    // ─── Multi-layer (3x) ─────────────────────────────────────
+    async function multiLayer() {
+        if (state.running) {
+            showToast('Please stop current scan first.', 2000);
+            return;
+        }
+        const url = sessionUrl.value.trim();
+        if (!url) {
+            showToast('❌ Set Session URL.', 2000);
+            return;
+        }
+        const mode = scanMode.value;
+        const target = parseInt(targetCount.value) || 0;
+        const speed = parseInt(speedInput.value) || 500;
+        // Multi-layer: 3 layers
+        const result = await apiCall('/api/multilayer', 'POST', {
+            url,
+            mode,
+            target,
+            speed,
+            layers: 3,
+        });
+        if (result && result.status === 'ok') {
+            showToast(`🔄 Multi-layer (3x) started.`);
+            appendLog(`🔄 Multi-layer scan started (3 layers). Mode: ${mode}`);
+            // We'll rely on backend to push updates via SSE or we poll status
+        } else {
+            const err = result?.message || 'Multi-layer error';
+            appendLog(`Multi-layer failed: ${err}`, true);
+            showToast(`❌ ${err}`, 3000);
+        }
+    }
+
+    // ─── Poll status ──────────────────────────────────────────
+    async function pollStatus() {
+        const result = await apiCall('/api/status', 'GET');
+        if (!result) return;
+
+        // Update state from backend
+        if (result.running !== undefined) state.running = result.running;
+        if (result.found !== undefined) state.found = result.found || [];
+        if (result.limited !== undefined) state.limited = result.limited || [];
+        if (result.checked !== undefined) state.checked = result.checked || 0;
+        if (result.mode) state.mode = result.mode;
+        if (result.speed) state.speedWindow = result.speed || 0;
+
+        // If backend sends a log message, append it
+        if (result.log) {
+            appendLog(result.log);
+        }
+
+        updateStats();
+    }
+
+    // ─── Load saved session from backend ──────────────────────
+    async function loadSession() {
+        const result = await apiCall('/api/session', 'GET');
+        if (result && result.url) {
+            sessionUrl.value = result.url;
+            appendLog('✅ Session loaded from server.');
+        }
+    }
+
+    // ─── Clear log ─────────────────────────────────────────────
+    function clearLog() {
+        state.logLines = [];
+        logArea.textContent = '[Log cleared]';
+        showToast('Log cleared.', 1200);
+    }
+
+    // ─── Init ──────────────────────────────────────────────────
+    async function init() {
+        // Load session
+        await loadSession();
+
+        // Bind events
+        startBtn.addEventListener('click', startScan);
+        stopBtn.addEventListener('click', stopScan);
+        multiLayerBtn.addEventListener('click', multiLayer);
+        clearLogBtn.addEventListener('click', clearLog);
+
+        // Set initial mode label
+        currentModeLabel.textContent = scanMode.value;
+
+        // Poll status every 1.5s
+        setInterval(pollStatus, 1500);
+
+        // Update mode label on change
+        scanMode.addEventListener('change', () => {
+            currentModeLabel.textContent = scanMode.value;
+        });
+
+        appendLog('🟢 Web UI ready. Waiting for commands.');
+        updateStats();
+
+        // Start uptime tick
+        setInterval(() => {
+            if (state.startTime) {
+                const sec = Math.floor((Date.now() - state.startTime) / 1000);
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                uptimeEl.textContent = `${h}h ${m}m`;
+            }
+        }, 5000);
+
+        // Toast welcome
+        setTimeout(() => showToast('🚀 Voucher Pro loaded. Set session URL and start!', 3000), 500);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
